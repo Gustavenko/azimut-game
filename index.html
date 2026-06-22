@@ -11,7 +11,6 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Azimuty · Lesné ríše</title>
 <style>
-  /* ---------- design tokens ---------- */
   :root{
     --ink:#14211C; --pine:#1F3D32; --pine-soft:#2C5345;
     --mist:#E6ECE7; --paper:#FBFCFA; --line:#C7D2CA;
@@ -24,29 +23,23 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0}
-  body{
-    font-family:var(--sans); color:var(--ink);
-    background:
-      radial-gradient(120% 80% at 50% -10%, #EEF3EE 0%, var(--mist) 55%, #DCE5DE 100%);
-    min-height:100vh; min-height:100dvh;
+  body{font-family:var(--sans);color:var(--ink);
+    background:radial-gradient(120% 80% at 50% -10%, #EEF3EE 0%, var(--mist) 55%, #DCE5DE 100%);
+    min-height:100vh;min-height:100dvh;
     padding:max(10px,env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom));
-    max-width:560px; margin:0 auto;
-    -webkit-text-size-adjust:100%;
-  }
-  /* ---------- header ---------- */
+    max-width:560px;margin:0 auto;-webkit-text-size-adjust:100%}
   header{display:flex;align-items:center;gap:10px;margin:2px 2px 12px}
   .mark{width:26px;height:26px;flex:0 0 auto}
-  header h1{font-family:var(--serif);font-size:19px;font-weight:600;margin:0;letter-spacing:.2px;flex:1}
+  header h1{font-family:var(--serif);font-size:19px;font-weight:600;margin:0;flex:1}
   header h1 small{display:block;font-family:var(--sans);font-size:10.5px;font-weight:600;
     letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:1px}
   .gear{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--pine);
     width:40px;height:40px;border-radius:12px;font-size:18px;cursor:pointer;display:grid;place-items:center}
   .gear:active{transform:scale(.95)}
 
-  /* ---------- current chip ---------- */
   .current{width:100%;text-align:left;border:1px solid var(--line);background:var(--paper);
     border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:12px;
-    cursor:pointer;box-shadow:var(--sh);margin-bottom:12px}
+    cursor:pointer;box-shadow:var(--sh);margin-bottom:10px}
   .current:active{transform:scale(.992)}
   .badge{flex:0 0 auto;width:46px;height:46px;border-radius:13px;background:var(--pine);
     color:#EAF3EE;display:grid;place-items:center;font-family:var(--mono);font-size:22px;font-weight:700}
@@ -56,52 +49,58 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .chev{color:var(--muted);font-size:20px;flex:0 0 auto}
 
-  /* ---------- compass ---------- */
-  .compass-wrap{position:relative;width:100%;max-width:340px;margin:2px auto 6px;aspect-ratio:1/1}
-  svg.compass{width:100%;height:100%;display:block}
-  #rose{transition:transform .18s linear}
-  body.reduce #rose,body.reduce #needle,body.reduce .pulse{transition:none;animation:none}
+  .seg{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:10px}
+  .seg button{flex:1;appearance:none;border:0;background:transparent;color:var(--muted);
+    font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.03em;padding:9px 6px;border-radius:9px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--pine);color:#EAF3EE}
+  .seg.mini button{padding:8px 6px;font-size:12px}
+
+  .gpsline{font-size:11.5px;color:var(--muted);text-align:center;margin:-4px 2px 10px;line-height:1.4}
+  .gpsline a{color:var(--wisp-deep);font-weight:700;text-decoration:none;cursor:pointer}
+
+  .compass-wrap{position:relative;width:min(82vw,330px);aspect-ratio:1/1;margin:2px auto 8px}
+  .layer{position:absolute;inset:0}
+  .layer svg{width:100%;height:100%;display:block;overflow:visible}
+  #roseLayer,#needleLayer{transform-origin:50% 50%;transition:transform .12s linear;will-change:transform}
+  body.reduce #roseLayer,body.reduce #needleLayer{transition:none}
   .ring{fill:var(--paper);stroke:var(--ink);stroke-width:1.4}
   .ring2{fill:none;stroke:var(--line);stroke-width:1}
   .tick{stroke:var(--muted);stroke-width:1}
   .tick.maj{stroke:var(--ink);stroke-width:1.8}
   .card-letter{font-family:var(--serif);font-size:13px;font-weight:600;fill:var(--ink);text-anchor:middle}
   .card-letter.n{fill:var(--gold)}
-  #needle .blade{fill:var(--wisp)}
-  #needle .blade.dim{fill:var(--line)}
-  .pulse{transform-origin:100px 100px;animation:p 2.4s ease-in-out infinite}
-  @keyframes p{0%,100%{opacity:.9}50%{opacity:.45}}
-  .hub{fill:var(--ink)}
+  .blade{fill:var(--wisp)} .blade.dim{fill:var(--line)} .hub{fill:var(--ink)}
+  body.compass-live .blade{fill:var(--wisp)}
+  .needle-faded #needleLayer{opacity:.12}
   .readout{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
-    justify-content:center;pointer-events:none;text-align:center;padding-top:6px}
-  .deg{font-family:var(--mono);font-weight:700;line-height:.9;letter-spacing:-.02em;
-    font-size:clamp(46px,16vw,64px)}
+    justify-content:center;pointer-events:none;text-align:center;padding-top:4px}
+  .deg{font-family:var(--mono);font-weight:700;line-height:.9;letter-spacing:-.02em;font-size:clamp(44px,15vw,62px)}
   .deg span{font-size:.42em;vertical-align:super;font-weight:600;margin-left:1px}
-  .deg.empty{font-size:30px;color:var(--muted);font-family:var(--serif);font-weight:600;letter-spacing:0}
-  .deg-kind{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--wisp-deep);margin-top:4px}
+  .deg.empty{font-size:26px;color:var(--muted);font-family:var(--serif);font-weight:600;letter-spacing:0}
+  .deg-kind{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--wisp-deep);margin-top:4px}
   .deg-kind.true{color:var(--gold)}
 
-  /* ---------- under-compass facts ---------- */
-  .facts{display:flex;justify-content:center;gap:18px;margin:2px 0 12px;flex-wrap:wrap}
-  .fact{text-align:center}
-  .fact b{font-family:var(--mono);font-size:15px;font-weight:700}
-  .fact small{display:block;font-size:9.5px;font-weight:700;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--muted);margin-top:1px}
-  .target-name{text-align:center;font-family:var(--serif);font-size:16px;margin:-2px 0 12px;color:var(--pine)}
+  .target-name{text-align:center;font-family:var(--serif);font-size:16px;margin:0 0 10px;color:var(--pine)}
+  .target-name b{font-family:var(--mono);font-weight:700}
   .target-name em{color:var(--muted);font-style:normal}
 
-  /* ---------- segmented ---------- */
-  .seg{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:12px;
-    padding:3px;margin-bottom:12px}
-  .seg button{flex:1;appearance:none;border:0;background:transparent;color:var(--muted);
-    font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.04em;padding:9px 6px;
-    border-radius:9px;cursor:pointer}
-  .seg button[aria-pressed="true"]{background:var(--pine);color:#EAF3EE}
+  .facts{display:flex;justify-content:center;gap:14px;margin:0 0 12px;flex-wrap:wrap}
+  .fact{text-align:center;min-width:64px}
+  .fact b{font-family:var(--mono);font-size:15px;font-weight:700}
+  .fact small{display:block;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:1px}
 
-  /* ---------- targets ---------- */
-  .targets-head{display:flex;align-items:center;gap:8px;margin:2px 2px 8px}
-  .targets-head .eyebrow{flex:1}
+  .sensors{display:flex;gap:8px;margin-bottom:12px}
+  .sensor{flex:1;border:1px solid var(--line);background:var(--paper);border-radius:13px;padding:9px 10px;
+    cursor:pointer;text-align:left;display:flex;align-items:center;gap:9px}
+  .sensor:active{transform:scale(.99)}
+  .sensor[data-on="true"]{border-color:var(--wisp);box-shadow:0 0 0 2px rgba(16,183,159,.18)}
+  .sensor .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:0 0 auto}
+  .sensor[data-on="true"] .dot{background:var(--wisp)}
+  .sensor .st{min-width:0}
+  .sensor .st b{font-size:12.5px;font-weight:700;display:block}
+  .sensor .st small{font-size:10.5px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .targets-head{margin:2px 2px 8px}
   .targets{display:flex;flex-direction:column;gap:8px}
   .tgt{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--paper);
     border-radius:13px;padding:10px 12px;cursor:pointer;text-align:left;width:100%}
@@ -110,27 +109,24 @@
   .tgt .arrow{flex:0 0 auto;color:var(--wisp-deep);font-size:18px;width:18px;text-align:center}
   .tgt .tb{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:var(--mist);
     display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:15px;color:var(--pine)}
-  .tgt .tn{flex:1;min-width:0;font-family:var(--serif);font-size:14.5px;line-height:1.15;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tgt .tn{flex:1;min-width:0;font-family:var(--serif);font-size:14.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tgt .tn i{font-style:normal;color:var(--gold);margin-left:5px}
-  .tgt .taz{flex:0 0 auto;font-family:var(--mono);font-weight:700;font-size:16px}
-  .tgt .taz small{font-size:10px;color:var(--muted);display:block;text-align:right;font-weight:600}
+  .tgt .taz{flex:0 0 auto;font-family:var(--mono);font-weight:700;font-size:16px;text-align:right}
+  .tgt .taz small{font-size:10px;color:var(--muted);display:block;font-weight:600}
   .empty-note{text-align:center;color:var(--muted);font-size:13px;padding:18px 0}
 
-  /* ---------- sheets ---------- */
-  .scrim{position:fixed;inset:0;background:rgba(20,33,28,.42);opacity:0;visibility:hidden;
-    transition:opacity .2s;z-index:40}
+  .scrim{position:fixed;inset:0;background:rgba(20,33,28,.42);opacity:0;visibility:hidden;transition:opacity .2s;z-index:40}
   .scrim.on{opacity:1;visibility:visible}
   .sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--paper);
     border-radius:20px 20px 0 0;padding:14px 14px calc(20px + env(safe-area-inset-bottom));
-    transform:translateY(102%);transition:transform .24s cubic-bezier(.2,.7,.2,1);z-index:41;
-    max-height:86vh;overflow:auto;box-shadow:0 -8px 30px rgba(20,33,28,.25)}
+    transform:translateY(102%);transition:transform .24s cubic-bezier(.2,.7,.2,1);z-index:41;max-height:86vh;overflow:auto;
+    box-shadow:0 -8px 30px rgba(20,33,28,.25)}
   .sheet.on{transform:translateY(0)}
   .grab{width:38px;height:4px;border-radius:4px;background:var(--line);margin:2px auto 12px}
   .sheet h2{font-family:var(--serif);font-size:18px;margin:0 4px 12px}
   .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .pcell{border:1px solid var(--line);background:var(--mist);border-radius:12px;padding:9px 8px;
-    cursor:pointer;text-align:left;min-height:58px;display:flex;flex-direction:column;justify-content:center}
+  .pcell{border:1px solid var(--line);background:var(--mist);border-radius:12px;padding:9px 8px;cursor:pointer;
+    text-align:left;min-height:58px;display:flex;flex-direction:column;justify-content:center}
   .pcell:active{transform:scale(.97)}
   .pcell[aria-current="true"]{border-color:var(--pine);background:var(--pine);color:#EAF3EE}
   .pcell .pn{font-family:var(--mono);font-weight:700;font-size:17px}
@@ -142,16 +138,13 @@
   .set-row .lab b{font-size:14px;font-weight:600;display:block}
   .set-row .lab small{font-size:11.5px;color:var(--muted);display:block;margin-top:2px;line-height:1.3}
   .decl{display:flex;align-items:center;gap:8px}
-  .decl button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);
-    background:var(--mist);font-size:20px;font-weight:700;cursor:pointer;color:var(--pine)}
+  .decl button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--mist);
+    font-size:20px;font-weight:700;cursor:pointer;color:var(--pine)}
   .decl input{width:62px;text-align:center;font-family:var(--mono);font-size:16px;font-weight:700;
     border:1px solid var(--line);border-radius:10px;padding:8px 4px;background:var(--paper);color:var(--ink)}
   .btn{appearance:none;border:1px solid var(--line);background:var(--mist);color:var(--pine);
     font-family:var(--sans);font-weight:700;font-size:13.5px;padding:11px 14px;border-radius:11px;cursor:pointer}
-  .btn.go{background:var(--wisp);border-color:var(--wisp-deep);color:#06241F}
-  .btn.go[data-on="true"]{background:var(--pine);border-color:var(--pine);color:#EAF3EE}
   .note{font-size:11.5px;color:var(--muted);line-height:1.4;margin:4px 4px 0}
-  .seg.mini button{padding:8px 6px;font-size:12px}
   :focus-visible{outline:2px solid var(--wisp);outline-offset:2px}
   button{font:inherit}
 </style>
@@ -165,27 +158,26 @@
 
 <button class="current" id="currentChip">
   <span class="badge" id="curNum">5</span>
-  <span class="meta">
-    <span class="eyebrow">Stojíš na bode</span>
-    <span class="name" id="curName">Tichá roklina lesných duchov</span>
-  </span>
+  <span class="meta"><span class="eyebrow" id="curEyebrow">Stojíš na bode</span>
+    <span class="name" id="curName">Tichá roklina lesných duchov</span></span>
   <span class="chev">›</span>
 </button>
 
-<div class="compass-wrap">
-  <svg class="compass" id="svg" viewBox="0 0 200 200" aria-hidden="true">
-    <circle class="ring" cx="100" cy="100" r="94"/>
-    <circle class="ring2" cx="100" cy="100" r="78"/>
-    <g id="rose">
-      <g id="ticks"></g>
-      <g id="cards"></g>
-      <g id="needle">
-        <polygon class="blade" points="100,30 92,100 108,100"/>
-        <polygon class="blade dim" points="100,170 94,100 106,100"/>
-      </g>
-    </g>
-    <circle class="hub" cx="100" cy="100" r="5"/>
+<div class="seg" role="group" aria-label="Odkiaľ merať">
+  <button id="originPoint" aria-pressed="true">Z bodu</button>
+  <button id="originGps" aria-pressed="false">GPS (kde som)</button>
+</div>
+<div class="gpsline" id="gpsline" hidden></div>
+
+<div class="compass-wrap" id="cwrap">
+  <svg class="layer" viewBox="0 0 200 200" aria-hidden="true">
+    <circle class="ring" cx="100" cy="100" r="94"/><circle class="ring2" cx="100" cy="100" r="78"/>
   </svg>
+  <div class="layer" id="roseLayer"><svg viewBox="0 0 200 200"><g id="ticks"></g><g id="cards"></g></svg></div>
+  <div class="layer" id="needleLayer"><svg viewBox="0 0 200 200">
+     <polygon class="blade" points="100,30 91,103 109,103"/>
+     <polygon class="blade dim" points="100,168 95,103 105,103"/>
+     <circle class="hub" cx="100" cy="100" r="5"/></svg></div>
   <div class="readout">
     <div class="deg empty" id="deg">vyber cieľ</div>
     <div class="deg-kind" id="degKind" hidden>magnetický</div>
@@ -196,92 +188,73 @@
 
 <div class="facts" id="facts" hidden>
   <div class="fact"><b id="fDist">–</b><small>vzdialenosť</small></div>
-  <div class="fact"><b id="fBack">–</b><small>späť (azimut)</small></div>
+  <div class="fact"><b id="fGame">–</b><small>herný azimut</small></div>
+  <div class="fact"><b id="fBack">–</b><small>späť</small></div>
 </div>
 
-<div class="seg" role="group" aria-label="Ktoré ciele zobraziť">
+<div class="sensors">
+  <button class="sensor" id="gpsBtn" data-on="false"><span class="dot"></span>
+    <span class="st"><b>GPS</b><small id="gpsStat">vypnuté</small></span></button>
+  <button class="sensor" id="compassBtn" data-on="false"><span class="dot"></span>
+    <span class="st"><b>Kompas</b><small id="compassStat">vypnuté</small></span></button>
+</div>
+
+<div class="seg" role="group" aria-label="Ktoré ciele">
   <button id="modeGame" aria-pressed="true">✦ Herné spoje</button>
   <button id="modeAll" aria-pressed="false">Všetky body</button>
 </div>
 
-<div class="targets-head">
-  <span class="eyebrow">Kam môžeš ísť</span>
-</div>
+<div class="targets-head"><span class="eyebrow">Kam môžeš ísť</span></div>
 <div class="targets" id="targets"></div>
 
-<!-- ===== picker sheet ===== -->
 <div class="scrim" id="scrimPick"></div>
-<div class="sheet" id="sheetPick" role="dialog" aria-label="Vyber bod, na ktorom stojíš">
-  <div class="grab"></div>
-  <h2>Na ktorom bode stojíš?</h2>
-  <div class="pgrid" id="pgrid"></div>
+<div class="sheet" id="sheetPick" role="dialog" aria-label="Vyber bod">
+  <div class="grab"></div><h2>Na ktorom bode stojíš?</h2><div class="pgrid" id="pgrid"></div>
 </div>
 
-<!-- ===== settings sheet ===== -->
 <div class="scrim" id="scrimSet"></div>
 <div class="sheet" id="sheetSet" role="dialog" aria-label="Nastavenia">
-  <div class="grab"></div>
-  <h2>Nastavenia</h2>
-
-  <div class="set-row">
-    <div class="lab"><b>Zobrazený azimut</b><small>Magnetický = priamo na buzolu. Pravý = voči zemepisnému severu (mapa).</small></div>
-  </div>
+  <div class="grab"></div><h2>Nastavenia</h2>
+  <div class="set-row"><div class="lab"><b>Zobrazený azimut</b>
+    <small>Magnetický = priamo na buzolu. Pravý = voči zemepisnému severu (mapa).</small></div></div>
   <div class="seg mini" role="group" aria-label="Typ azimutu">
     <button id="dispMag" aria-pressed="true">Magnetický</button>
-    <button id="dispTrue" aria-pressed="false">Pravý</button>
-  </div>
-
-  <div class="set-row">
-    <div class="lab"><b>Magnetická deklinácia</b><small>+5,5° pre okolie Starej Turej. Odčíta sa od pravého azimutu.</small></div>
-    <div class="decl">
-      <button id="declMinus" aria-label="Znížiť">−</button>
-      <input id="declInput" inputmode="decimal" value="5.5">
-      <button id="declPlus" aria-label="Zvýšiť">+</button>
-    </div>
-  </div>
-
-  <div class="set-row">
-    <div class="lab"><b>Kompas telefónu</b><small>Otáča ružicu, šípka ukáže reálny smer. Magnetometer v telefóne je len orientačný, poriadna buzola je istejšia.</small></div>
-    <button class="btn go" id="compassBtn" data-on="false">Zapnúť</button>
-  </div>
-  <div class="note" id="compassNote"></div>
-
-  <div class="set-row">
-    <div class="lab"><b>Začať odznova</b><small>Vráti bod a nastavenia na predvolené.</small></div>
-    <button class="btn" id="resetBtn">Reset</button>
-  </div>
-  <p class="note">Body a spoje sa dajú meniť v súbore (sekcia <b>POINTS</b> a <b>CONNECTIONS</b> na začiatku skriptu). Azimuty sa prepočítajú samé zo súradníc.</p>
+    <button id="dispTrue" aria-pressed="false">Pravý</button></div>
+  <div class="set-row"><div class="lab"><b>Magnetická deklinácia</b>
+    <small>+5,5° pre okolie Starej Turej. Odčíta sa od pravého azimutu.</small></div>
+    <div class="decl"><button id="declMinus" aria-label="Znížiť">−</button>
+      <input id="declInput" inputmode="decimal" value="5,5">
+      <button id="declPlus" aria-label="Zvýšiť">+</button></div></div>
+  <div class="set-row"><div class="lab"><b>Začať odznova</b><small>Vráti bod a nastavenia na predvolené.</small></div>
+    <button class="btn" id="resetBtn">Reset</button></div>
+  <p class="note">Senzory (GPS, kompas) fungujú len cez <b>https</b> alebo localhost a po povolení prístupu. Body a spoje sa menia v súbore v sekcii <b>POINTS</b> a <b>CONNECTIONS</b>.</p>
 </div>
 
 <script>
-/* =======================================================================
-   KONFIGURÁCIA  —  toto je jediné, čo treba meniť pri úprave hry.
-   POINTS: číslo bodu -> názov + súradnice (desatinné stupne).
-   CONNECTIONS: dvojice [z, na] = herné spoje (smery, ktoré hra určuje).
-   Azimuty sa počítajú automaticky zo súradníc.
-   ======================================================================= */
-const DECLINATION_DEFAULT = 5.5;            // +° na východ (Stará Turá ~ +5,5°)
-const START_POINT = 5;                      // s ktorým bodom appka otvorí
-
+/* ===== KONFIGURÁCIA (jediné, čo treba meniť) ====================================
+   POINTS: číslo -> názov + súradnice (desatinné stupne). CONNECTIONS: dvojice [z,na].
+   Azimuty aj vzdialenosti sa počítajú automaticky zo súradníc. ============== */
+const DECLINATION_DEFAULT = 5.5;   // +° na východ
+const START_POINT = 5;
 const POINTS = {
-  1:{name:"Smaragdová ríša víl", lat:48.872753, lon:18.114098},
-  2:{name:"Hmlisté údolie tieňových elfov", lat:48.872032, lon:18.116972},
-  3:{name:"Koruny starých entov", lat:48.873486, lon:18.119420},
-  4:{name:"Divočina strážená gryfmi", lat:48.873287, lon:18.116844},
-  5:{name:"Tichá roklina lesných duchov", lat:48.874940, lon:18.115835},
-  6:{name:"Machové kráľovstvo jednorožcov", lat:48.874687, lon:18.118807},
-  7:{name:"Temné hlbiny vlkolakov", lat:48.875122, lon:18.120920},
-  8:{name:"Prastaré konáre druidov", lat:48.874123, lon:18.122746},
-  9:{name:"Zakliata divočina čarodejníc", lat:48.876640, lon:18.124107},
-  10:{name:"Údolie stratených škriatkov", lat:48.877020, lon:18.122220},
-  11:{name:"Hlboké húštiny trollov", lat:48.878120, lon:18.123507},
-  12:{name:"Strieborné končiny fenixov", lat:48.878840, lon:18.121254},
-  13:{name:"Tieňová ríša havraních mágov", lat:48.877346, lon:18.120224},
-  14:{name:"Šeptajúce korene dryád", lat:48.876102, lon:18.117777},
-  15:{name:"Zelené svätyne lesných strážcov", lat:48.872570, lon:18.119890},
-  16:{name:"Tmavé kráľovstvo víl večného svitu", lat:48.877530, lon:18.118721},
-  17:{name:"Svetielkujúce lúky víl", lat:48.877090, lon:18.116770},
-  18:{name:"Večné šero démonických bytostí", lat:48.872086, lon:18.115053},
+  1:{name:"Smaragdová ríša víl",lat:48.872753,lon:18.114098},
+  2:{name:"Hmlisté údolie tieňových elfov",lat:48.872032,lon:18.116972},
+  3:{name:"Koruny starých entov",lat:48.873486,lon:18.119420},
+  4:{name:"Divočina strážená gryfmi",lat:48.873287,lon:18.116844},
+  5:{name:"Tichá roklina lesných duchov",lat:48.874940,lon:18.115835},
+  6:{name:"Machové kráľovstvo jednorožcov",lat:48.874687,lon:18.118807},
+  7:{name:"Temné hlbiny vlkolakov",lat:48.875122,lon:18.120920},
+  8:{name:"Prastaré konáre druidov",lat:48.874123,lon:18.122746},
+  9:{name:"Zakliata divočina čarodejníc",lat:48.876640,lon:18.124107},
+  10:{name:"Údolie stratených škriatkov",lat:48.877020,lon:18.122220},
+  11:{name:"Hlboké húštiny trollov",lat:48.878120,lon:18.123507},
+  12:{name:"Strieborné končiny fenixov",lat:48.878840,lon:18.121254},
+  13:{name:"Tieňová ríša havraních mágov",lat:48.877346,lon:18.120224},
+  14:{name:"Šeptajúce korene dryád",lat:48.876102,lon:18.117777},
+  15:{name:"Zelené svätyne lesných strážcov",lat:48.872570,lon:18.119890},
+  16:{name:"Tmavé kráľovstvo víl večného svitu",lat:48.877530,lon:18.118721},
+  17:{name:"Svetielkujúce lúky víl",lat:48.877090,lon:18.116770},
+  18:{name:"Večné šero démonických bytostí",lat:48.872086,lon:18.115053},
 };
 const CONNECTIONS = [
   [1,2],[1,5],[2,3],[2,15],[3,8],[3,6],[4,2],[4,14],[5,17],[5,14],
@@ -289,226 +262,222 @@ const CONNECTIONS = [
   [11,9],[12,10],[12,11],[13,7],[14,16],[14,13],[15,8],[15,3],[16,13],
   [16,6],[17,16],[17,14],[18,1],[18,2],
 ];
-/* ===================== koniec konfigurácie ===================== */
+/* ===== koniec konfigurácie ===== */
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const R=Math.PI/180;
-
-function bearing(a,b){
-  const A=POINTS[a],B=POINTS[b];
-  const la1=A.lat*R, la2=B.lat*R, dl=(B.lon-A.lon)*R;
-  const y=Math.sin(dl)*Math.cos(la2);
-  const x=Math.cos(la1)*Math.sin(la2)-Math.sin(la1)*Math.cos(la2)*Math.cos(dl);
-  return (Math.atan2(y,x)/R+360)%360;
+const R=Math.PI/180, norm=d=>((d%360)+360)%360;
+function bearingC(o,t){
+  const la1=o.lat*R,la2=t.lat*R,dl=(t.lon-o.lon)*R;
+  const y=Math.sin(dl)*Math.cos(la2), x=Math.cos(la1)*Math.sin(la2)-Math.sin(la1)*Math.cos(la2)*Math.cos(dl);
+  return norm(Math.atan2(y,x)/R);
 }
-function distance(a,b){
-  const A=POINTS[a],B=POINTS[b],Rm=6371000;
-  const la1=A.lat*R, la2=B.lat*R, dla=(B.lat-A.lat)*R, dlo=(B.lon-A.lon)*R;
+function distC(o,t){
+  const Rm=6371000,la1=o.lat*R,la2=t.lat*R,dla=(t.lat-o.lat)*R,dlo=(t.lon-o.lon)*R;
   const h=Math.sin(dla/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dlo/2)**2;
   return 2*Rm*Math.asin(Math.sqrt(h));
 }
-function fmtDeg(v){
-  const s=(Math.round(v*10)/10).toFixed(1).replace(".",",");
-  return s.endsWith(",0")?s.slice(0,-2):s;
-}
-function gameTargets(p){return CONNECTIONS.filter(c=>c[0]===p).map(c=>c[1]);}
-function isGameLink(p,t){return CONNECTIONS.some(c=>c[0]===p&&c[1]===t);}
+function fmtDeg(v){const s=(Math.round(v*10)/10).toFixed(1).replace(".",",");return s.endsWith(",0")?s.slice(0,-2):s;}
+function fmtDist(m){return m>=1000?(m/1000).toFixed(m<10000?2:1).replace(".",",")+" km":Math.round(m)+" m";}
+const gameTargets=p=>CONNECTIONS.filter(c=>c[0]===p).map(c=>c[1]);
+const isGameLink=(p,t)=>CONNECTIONS.some(c=>c[0]===p&&c[1]===t);
 
-/* ---------- state ---------- */
-const S={current:START_POINT, target:null, mode:"game", display:"mag",
-         declination:DECLINATION_DEFAULT, useCompass:false, heading:0};
+const S={current:START_POINT,target:null,mode:"game",display:"mag",
+  declination:DECLINATION_DEFAULT,origin:"point",
+  gps:null,gpsOn:false,compassOn:false,heading:null,rotRose:0,rotNeedle:0};
 const store={
-  load(){try{const v=JSON.parse(localStorage.getItem("azimuty"));if(v)Object.assign(S,v,{target:null,useCompass:false,heading:0});}catch(e){}},
-  save(){try{localStorage.setItem("azimuty",JSON.stringify(
-      {current:S.current,mode:S.mode,display:S.display,declination:S.declination}));}catch(e){}}
+  load(){try{const v=JSON.parse(localStorage.getItem("azimuty2"));if(v)Object.assign(S,v,
+    {target:null,gps:null,gpsOn:false,compassOn:false,heading:null,origin:"point",rotRose:0,rotNeedle:0});}catch(e){}},
+  save(){try{localStorage.setItem("azimuty2",JSON.stringify(
+    {current:S.current,mode:S.mode,display:S.display,declination:S.declination}));}catch(e){}}
 };
 
-/* ---------- build static compass ticks + cardinals ---------- */
-(function buildRose(){
-  const t=$("#ticks");let s="";
-  for(let a=0;a<360;a+=5){
-    const maj=a%30===0, len=maj?14:8, r1=78, r2=78-len;
-    const x1=100+r1*Math.sin(a*R), y1=100-r1*Math.cos(a*R);
-    const x2=100+r2*Math.sin(a*R), y2=100-r2*Math.cos(a*R);
-    s+=`<line class="tick${maj?' maj':''}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;
-  }
-  t.innerHTML=s;
-  const cards=[["S",0,"n"],["V",90],["J",180],["Z",270]];
-  $("#cards").innerHTML=cards.map(([l,a,cl])=>{
-    const r=58, x=100+r*Math.sin(a*R), y=100-r*Math.cos(a*R)+4.5;
-    return `<text class="card-letter ${cl||''}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${l}</text>`;
-  }).join("");
+/* build rose ticks + cardinals */
+(function(){let s="";for(let a=0;a<360;a+=5){const maj=a%30===0,len=maj?14:8,r1=78,r2=78-len;
+  s+=`<line class="tick${maj?" maj":""}" x1="${(100+r1*Math.sin(a*R)).toFixed(1)}" y1="${(100-r1*Math.cos(a*R)).toFixed(1)}" x2="${(100+r2*Math.sin(a*R)).toFixed(1)}" y2="${(100-r2*Math.cos(a*R)).toFixed(1)}"/>`;}
+  $("#ticks").innerHTML=s;
+  $("#cards").innerHTML=[["S",0,"n"],["V",90,""],["J",180,""],["Z",270,""]].map(([l,a,cl])=>{
+    const r=58,x=100+r*Math.sin(a*R),y=100-r*Math.cos(a*R)+4.5;
+    return `<text class="card-letter ${cl}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${l}</text>`;}).join("");
 })();
 
-/* ---------- render ---------- */
-function azFor(t){
-  const tru=bearing(S.current,t);
-  return S.display==="mag" ? (tru-S.declination+360)%360 : tru;
+const roseLayer=$("#roseLayer"), needleLayer=$("#needleLayer");
+function setRot(which,deg){
+  const key=which==="rose"?"rotRose":"rotNeedle", el=which==="rose"?roseLayer:needleLayer;
+  let cont=S[key], delta=((deg-cont)%360+540)%360-180; cont+=delta; S[key]=cont;
+  el.style.transform=`rotate(${cont.toFixed(1)}deg)`;
 }
+
+function originCoords(){
+  if(S.origin==="gps" && S.gps) return {lat:S.gps.lat,lon:S.gps.lon};
+  return {lat:POINTS[S.current].lat,lon:POINTS[S.current].lon};
+}
+function dispAz(trueB){return S.display==="mag"?norm(trueB-S.declination):trueB;}
+
 function render(){
   const c=POINTS[S.current];
-  $("#curNum").textContent=S.current;
-  $("#curName").textContent=c.name;
+  $("#curNum").textContent=S.current; $("#curName").textContent=c.name;
+  $("#curEyebrow").textContent = S.origin==="gps" ? "Herné spoje z bodu" : "Stojíš na bode";
 
-  // targets list
+  // targets
   let list = S.mode==="game" ? gameTargets(S.current)
-            : Object.keys(POINTS).map(Number).filter(n=>n!==S.current);
+           : Object.keys(POINTS).map(Number).filter(n=>n!==S.current);
   if(S.target!==null && !list.includes(S.target)) S.target=null;
-  const wrap=$("#targets");
+  const o=originCoords(), wrap=$("#targets");
   if(list.length===0){
-    wrap.innerHTML='<div class="empty-note">Z tohto bodu hra neurčuje žiadny spoj.<br>Prepni na „Všetky body".</div>';
+    wrap.innerHTML='<div class="empty-note">Z tohto bodu hra neurčuje spoj.<br>Prepni na „Všetky body".</div>';
   }else{
     wrap.innerHTML=list.map(t=>{
-      const az=azFor(t), game=isGameLink(S.current,t);
-      const cur=S.target===t;
-      return `<button class="tgt" data-t="${t}" aria-current="${cur}">
-        <span class="arrow">➜</span>
-        <span class="tb">${t}</span>
-        <span class="tn">${POINTS[t].name}${game?'<i title="herný spoj">✦</i>':''}</span>
-        <span class="taz">${fmtDeg(az)}°<small>${S.display==="mag"?"mag":"pravý"}</small></span>
-      </button>`;
+      const az=dispAz(bearingC(o,POINTS[t])), game=isGameLink(S.current,t), cur=S.target===t;
+      return `<button class="tgt" data-t="${t}" aria-current="${cur}"><span class="arrow">➜</span>
+        <span class="tb">${t}</span><span class="tn">${POINTS[t].name}${game?'<i>✦</i>':''}</span>
+        <span class="taz">${fmtDeg(az)}°<small>${S.display==="mag"?"mag":"pravý"}</small></span></button>`;
     }).join("");
     $$("#targets .tgt").forEach(b=>b.onclick=()=>{S.target=+b.dataset.t;render();});
   }
 
-  // compass + readout
-  const deg=$("#deg"),kind=$("#degKind"),needle=$("#needle");
+  const deg=$("#deg"),kind=$("#degKind");
   if(S.target===null){
     deg.className="deg empty"; deg.textContent="vyber cieľ"; kind.hidden=true;
-    needle.style.opacity=".12"; needle.classList.remove("pulse");
+    document.body.classList.add("needle-faded"); $("#facts").hidden=true;
     $("#tName").innerHTML='<em>Vyber bod, kam posielaš deti</em>';
-    $("#facts").hidden=true;
+    setRot("needle",0);
   }else{
-    const tru=bearing(S.current,S.target), az=azFor(S.target);
+    document.body.classList.remove("needle-faded");
+    const trueB=bearingC(o,POINTS[S.target]), distM=distC(o,POINTS[S.target]), az=dispAz(trueB);
     deg.className="deg"; deg.innerHTML=`${fmtDeg(az)}<span>°</span>`;
     kind.hidden=false; kind.textContent=S.display==="mag"?"magnetický azimut":"pravý azimut";
     kind.className="deg-kind"+(S.display==="mag"?"":" true");
-    needle.style.opacity="1"; needle.classList.add("pulse");
-    // needle points to the DISPLAYED azimuth; rose-north matches the chosen reference,
-    // so the picture always agrees with the number (and stays correct in live mode).
-    needle.setAttribute("transform",`rotate(${az.toFixed(1)} 100 100)`);
     $("#tName").innerHTML=`<b>${S.target}</b> · ${POINTS[S.target].name}`;
+    // facts
     $("#facts").hidden=false;
-    $("#fDist").textContent=Math.round(distance(S.current,S.target))+" m";
-    const back=(tru+180)%360, backAz=S.display==="mag"?(back-S.declination+360)%360:back;
-    $("#fBack").textContent=fmtDeg(backAz)+"°";
+    $("#fDist").textContent=fmtDist(distM);
+    const gameTrue=bearingC(POINTS[S.current],POINTS[S.target]);
+    $("#fGame").textContent=fmtDeg(dispAz(gameTrue))+"°";
+    $("#fBack").textContent=fmtDeg(dispAz(norm(trueB+180)))+"°";
+    // needle
+    if(S.compassOn && S.heading!=null){
+      const magB=norm(trueB-S.declination);
+      setRot("needle", magB - S.heading);
+    }else{
+      setRot("needle", az);
+    }
   }
-  updateRose();
-}
-function updateRose(){
-  // S.heading is TRUE heading. The shown "north" is true north, or magnetic north
-  // (true - declination) when the magnetic azimuth is displayed. Drawing the needle at
-  // the displayed azimuth + rotating the rose to the matching north makes the real-world
-  // pointing identical either way (the declination cancels), and the static picture matches the number.
-  const northRef = (S.display==="mag") ? (S.heading - S.declination) : S.heading;
-  const ang = S.useCompass ? -northRef : 0;
-  $("#rose").setAttribute("transform",`rotate(${ang.toFixed(1)} 100 100)`);
+  // rose follows north when compass live
+  setRot("rose", (S.compassOn && S.heading!=null) ? -S.heading : 0);
+  document.body.classList.toggle("compass-live", S.compassOn && S.heading!=null);
 }
 
-/* ---------- picker ---------- */
+/* picker */
 function buildPicker(){
   $("#pgrid").innerHTML=Object.keys(POINTS).map(Number).map(n=>
     `<button class="pcell" data-p="${n}" aria-current="${n===S.current}">
-       <span class="pn">${n}</span><span class="pnm">${POINTS[n].name}</span>
-     </button>`).join("");
-  $$("#pgrid .pcell").forEach(b=>b.onclick=()=>{
-    S.current=+b.dataset.p; S.target=null; store.save(); closeSheet(); render();
-  });
+       <span class="pn">${n}</span><span class="pnm">${POINTS[n].name}</span></button>`).join("");
+  $$("#pgrid .pcell").forEach(b=>b.onclick=()=>{S.current=+b.dataset.p;S.target=null;store.save();closeSheet();render();});
 }
-function openSheet(which){
-  if(which==="pick"){buildPicker();$("#scrimPick").classList.add("on");$("#sheetPick").classList.add("on");}
-  else{$("#scrimSet").classList.add("on");$("#sheetSet").classList.add("on");}
-}
-function closeSheet(){
-  $$(".scrim").forEach(e=>e.classList.remove("on"));
-  $$(".sheet").forEach(e=>e.classList.remove("on"));
-}
+function openSheet(w){if(w==="pick"){buildPicker();$("#scrimPick").classList.add("on");$("#sheetPick").classList.add("on");}
+  else{$("#scrimSet").classList.add("on");$("#sheetSet").classList.add("on");}}
+function closeSheet(){$$(".scrim").forEach(e=>e.classList.remove("on"));$$(".sheet").forEach(e=>e.classList.remove("on"));}
 
-/* ---------- wiring ---------- */
 $("#currentChip").onclick=()=>openSheet("pick");
 $("#openSettings").onclick=()=>openSheet("set");
 $("#scrimPick").onclick=closeSheet; $("#scrimSet").onclick=closeSheet;
 
-$("#modeGame").onclick=()=>{S.mode="game";syncSeg();store.save();render();};
-$("#modeAll").onclick =()=>{S.mode="all"; syncSeg();store.save();render();};
-function syncSeg(){
-  $("#modeGame").setAttribute("aria-pressed",S.mode==="game");
-  $("#modeAll").setAttribute("aria-pressed",S.mode==="all");
-}
-$("#dispMag").onclick =()=>{S.display="mag"; syncDisp();store.save();render();};
-$("#dispTrue").onclick=()=>{S.display="true";syncDisp();store.save();render();};
-function syncDisp(){
-  $("#dispMag").setAttribute("aria-pressed",S.display==="mag");
-  $("#dispTrue").setAttribute("aria-pressed",S.display==="true");
-}
+$("#modeGame").onclick=()=>{S.mode="game";segP("#modeGame","#modeAll",true);store.save();render();};
+$("#modeAll").onclick =()=>{S.mode="all"; segP("#modeGame","#modeAll",false);store.save();render();};
+$("#dispMag").onclick =()=>{S.display="mag"; segP("#dispMag","#dispTrue",true); store.save();render();};
+$("#dispTrue").onclick=()=>{S.display="true";segP("#dispMag","#dispTrue",false);store.save();render();};
+$("#originPoint").onclick=()=>{S.origin="point";segP("#originPoint","#originGps",true);updateGpsLine();render();};
+$("#originGps").onclick =()=>{S.origin="gps";  segP("#originPoint","#originGps",false);
+  if(!S.gpsOn) startGps(); updateGpsLine(); render();};
+function segP(a,b,first){$(a).setAttribute("aria-pressed",first);$(b).setAttribute("aria-pressed",!first);}
 
 const declI=$("#declInput");
-function setDecl(v){S.declination=Math.max(-30,Math.min(30,Math.round(v*10)/10));declI.value=String(S.declination).replace(".",",");store.save();render();}
+function setDecl(v){S.declination=Math.max(-30,Math.min(30,Math.round(v*10)/10));
+  declI.value=String(S.declination).replace(".",",");store.save();render();}
 $("#declMinus").onclick=()=>setDecl(S.declination-0.5);
 $("#declPlus").onclick =()=>setDecl(S.declination+0.5);
-declI.onchange=()=>{const v=parseFloat(declI.value.replace(",","."));if(!isNaN(v))setDecl(v);else setDecl(S.declination);};
+declI.onchange=()=>{const v=parseFloat(declI.value.replace(",","."));setDecl(isNaN(v)?S.declination:v);};
 
-$("#resetBtn").onclick=()=>{
+$("#resetBtn").onclick=()=>{stopGps();stopCompass();
   Object.assign(S,{current:START_POINT,target:null,mode:"game",display:"mag",
-    declination:DECLINATION_DEFAULT,useCompass:false,heading:0});
-  try{localStorage.removeItem("azimuty");}catch(e){}
-  stopCompass(); syncAll(); render(); closeSheet();
-};
+    declination:DECLINATION_DEFAULT,origin:"point",rotRose:0,rotNeedle:0});
+  try{localStorage.removeItem("azimuty2");}catch(e){}
+  segP("#modeGame","#modeAll",true);segP("#dispMag","#dispTrue",true);segP("#originPoint","#originGps",true);
+  declI.value="5,5";updateGpsLine();render();closeSheet();};
 
-/* ---------- device compass ---------- */
-let compassOn=false;
-function headingFromEvent(e){
-  if(typeof e.webkitCompassHeading==="number") return e.webkitCompassHeading; // iOS, ~true north
-  if(e.alpha==null) return null;
-  let mag=(360-e.alpha)%360;            // Android: alpha counterclockwise
-  return (mag+S.declination+360)%360;   // magnetic -> true
+/* ---------- GPS ---------- */
+let watchId=null;
+function startGps(){
+  if(!("geolocation" in navigator)){gpsStat("nepodporované");return;}
+  gpsStat("hľadám…"); setSensor("#gpsBtn",true);
+  watchId=navigator.geolocation.watchPosition(p=>{
+    S.gps={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};
+    S.gpsOn=true; gpsStat("±"+Math.round(S.gps.acc)+" m"); updateGpsLine(); render();
+  },err=>{
+    S.gpsOn=false; setSensor("#gpsBtn",false);
+    gpsStat(err.code===1?"prístup zamietnutý":err.code===3?"vypršalo (skús von)":"nedostupné");
+    if(S.origin==="gps"){S.origin="point";segP("#originPoint","#originGps",true);updateGpsLine();render();}
+  },{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
 }
-function onOrient(e){
-  const h=headingFromEvent(e);
-  if(h==null) return;
-  S.heading=h; updateRose();
+function stopGps(){if(watchId!=null){navigator.geolocation.clearWatch(watchId);watchId=null;}
+  S.gpsOn=false;S.gps=null;setSensor("#gpsBtn",false);gpsStat("vypnuté");}
+$("#gpsBtn").onclick=()=>{S.gpsOn?stopGps():startGps();
+  if(!S.gpsOn && S.origin==="gps"){S.origin="point";segP("#originPoint","#originGps",true);}updateGpsLine();render();};
+function gpsStat(t){$("#gpsStat").textContent=t;}
+function nearestPoint(){if(!S.gps)return null;let best=null,bd=1e12;
+  for(const k of Object.keys(POINTS)){const d=distC(S.gps,POINTS[k]);if(d<bd){bd=d;best=+k;}}return {p:best,d:bd};}
+function updateGpsLine(){
+  const el=$("#gpsline");
+  if(S.origin!=="gps"){el.hidden=true;return;}
+  el.hidden=false;
+  if(!S.gps){el.innerHTML="Čakám na GPS… (vonku to chytí lepšie)";return;}
+  const n=nearestPoint();
+  el.innerHTML=`Meriam z tvojej GPS polohy · presnosť ±${Math.round(S.gps.acc)} m · `+
+    `najbližší bod <b>${n.p}</b> (${Math.round(n.d)} m) `+
+    (n.p!==S.current?`<a id="setNear">nastaviť ako štart</a>`:`✓ je nastavený`);
+  const sn=$("#setNear"); if(sn) sn.onclick=()=>{S.current=n.p;S.target=null;store.save();render();};
 }
+
+/* ---------- kompas ---------- */
+function screenAngle(){let a=0;
+  if(screen.orientation&&typeof screen.orientation.angle==="number")a=screen.orientation.angle;
+  else if(typeof window.orientation==="number")a=window.orientation;return a||0;}
+function readHeading(e){
+  if(typeof e.webkitCompassHeading==="number"&&!isNaN(e.webkitCompassHeading))return e.webkitCompassHeading;
+  if(e.alpha==null)return null;
+  return norm(360-e.alpha+screenAngle());
+}
+function onOrient(e){const h=readHeading(e);if(h==null)return;S.heading=h;
+  compassStat("smer "+Math.round(h)+"°"); render();}
 function startCompass(){
-  const begin=()=>{
-    window.addEventListener("deviceorientationabsolute",onOrient,true);
+  const begin=()=>{window.addEventListener("deviceorientationabsolute",onOrient,true);
     window.addEventListener("deviceorientation",onOrient,true);
-    compassOn=true; S.useCompass=true; setCompassUI("Kompas beží. Drž telefón vodorovne."); render();
-  };
-  if(typeof DeviceOrientationEvent!=="undefined" && typeof DeviceOrientationEvent.requestPermission==="function"){
+    S.compassOn=true;setSensor("#compassBtn",true);compassStat("spúšťam…");render();};
+  if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
     DeviceOrientationEvent.requestPermission().then(r=>{
-      if(r==="granted") begin();
-      else setCompassUI("Prístup k senzoru zamietnutý. Použi číselný azimut a buzolu.");
-    }).catch(()=>setCompassUI("Senzor sa nepodarilo spustiť. Použi číselný azimut a buzolu."));
-  }else if(window.DeviceOrientationEvent){
-    begin();
-  }else{
-    setCompassUI("Tento telefón/prehliadač nehlási kompas. Použi číselný azimut a buzolu.");
-  }
+      if(r==="granted")begin(); else{setSensor("#compassBtn",false);compassStat("zamietnuté");}
+    }).catch(()=>{setSensor("#compassBtn",false);compassStat("chyba senzora");});
+  }else if(window.DeviceOrientationEvent){begin();}
+  else{compassStat("nepodporované");}
 }
-function stopCompass(){
-  window.removeEventListener("deviceorientationabsolute",onOrient,true);
+function stopCompass(){window.removeEventListener("deviceorientationabsolute",onOrient,true);
   window.removeEventListener("deviceorientation",onOrient,true);
-  compassOn=false; S.useCompass=false; S.heading=0; setCompassUI(""); updateRose();
-}
-$("#compassBtn").onclick=()=>{ compassOn?stopCompass():startCompass(); syncCompassBtn(); };
-function syncCompassBtn(){
-  const b=$("#compassBtn"); b.dataset.on=compassOn; b.textContent=compassOn?"Vypnúť":"Zapnúť";
-}
-function setCompassUI(msg){$("#compassNote").textContent=msg; syncCompassBtn();}
+  S.compassOn=false;S.heading=null;setSensor("#compassBtn",false);compassStat("vypnuté");render();}
+$("#compassBtn").onclick=()=>{S.compassOn?stopCompass():startCompass();};
+function compassStat(t){$("#compassStat").textContent=t;}
+function setSensor(sel,on){$(sel).dataset.on=on;}
 
-/* ---------- reduced motion ---------- */
 if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)
   document.body.classList.add("reduce");
-
-function syncAll(){syncSeg();syncDisp();declI.value=String(S.declination).replace(".",",");syncCompassBtn();}
-
-/* ---------- service worker (len pri hostovaní cez http/https) ---------- */
-if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))
   navigator.serviceWorker.register("sw.js").catch(()=>{});
-}
 
-/* ---------- go ---------- */
-store.load(); syncAll(); render();
+store.load();
+segP("#modeGame","#modeAll",S.mode==="game");
+segP("#dispMag","#dispTrue",S.display==="mag");
+segP("#originPoint","#originGps",S.origin==="point");
+declI.value=String(S.declination).replace(".",",");
+updateGpsLine(); render();
 </script>
 </body>
 </html>

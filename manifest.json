@@ -1,7 +1,7 @@
 {
   "name": "Lesné ríše · Azimuty",
   "short_name": "Azimuty",
-  "description": "Azimutová pomôcka pre animátorov - smer z bodu na bod.",
+  "description": "Azimutová pomôcka pre animátorov - smer z bodu na bod, s GPS a kompasom.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
