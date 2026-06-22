@@ -471,26 +471,48 @@ $("#resetBtn").onclick=()=>{
 
 /* ---------- device compass ---------- */
 let compassOn=false;
+let smoothHeading=null;
+let lastSensorSource="";
+let warnedRelative=false;
+function normDeg(v){ return ((v%360)+360)%360; }
+function shortestDiff(a,b){ return ((a-b+540)%360)-180; }
+function smoothDeg(next){
+  if(smoothHeading===null){ smoothHeading=next; return next; }
+  smoothHeading = normDeg(smoothHeading + shortestDiff(next,smoothHeading)*0.28);
+  return smoothHeading;
+}
 function headingFromEvent(e){
   if(typeof e.webkitCompassHeading==="number" && !Number.isNaN(e.webkitCompassHeading)){
+    if(typeof e.webkitCompassAccuracy==="number" && e.webkitCompassAccuracy>80) return null;
     // Safari/iOS reports magnetic heading -> convert to true for internal state.
-    return (e.webkitCompassHeading+S.declination+360)%360;
+    return {heading:normDeg(e.webkitCompassHeading+S.declination), source:"webkit"};
   }
   if(typeof e.alpha!=="number" || Number.isNaN(e.alpha)) return null;
-  // On some devices non-absolute alpha drifts against the world frame, so ignore it.
-  if(typeof e.absolute==="boolean" && !e.absolute) return null;
-  const mag=(360-e.alpha)%360;          // Android: alpha counterclockwise
-  return (mag+S.declination+360)%360;   // magnetic -> true
+  // Most browsers report alpha clockwise from north in world frame when absolute=true.
+  // For relative fallback we still use alpha, but mark lower confidence.
+  const isRelative = (typeof e.absolute==="boolean" && !e.absolute);
+  return {heading:normDeg(e.alpha+S.declination), source:isRelative?"relative":"absolute"};
 }
 function onOrient(e){
-  const h=headingFromEvent(e);
-  if(h==null) return;
-  S.heading=h; updateRose();
+  const data=headingFromEvent(e);
+  if(data==null) return;
+  if(compassOn && data.source==="relative" && !warnedRelative){
+    warnedRelative=true;
+    setCompassUI("Kompas beží v záložnom režime (nižšia presnosť). Kalibruj telefón pohybom do osmičky.");
+  }else if(compassOn && data.source!==lastSensorSource && data.source!=="relative"){
+    setCompassUI("Kompas beží. Drž telefón vodorovne.");
+  }
+  lastSensorSource=data.source;
+  S.heading=smoothDeg(data.heading); updateRose();
 }
 function startCompass(){
+  if(compassOn) return;
   const begin=()=>{
     window.addEventListener("deviceorientationabsolute",onOrient,true);
     window.addEventListener("deviceorientation",onOrient,true);
+    smoothHeading=null;
+    warnedRelative=false;
+    lastSensorSource="";
     compassOn=true; S.useCompass=true; setCompassUI("Kompas beží. Drž telefón vodorovne."); render();
   };
   if(typeof DeviceOrientationEvent!=="undefined" && typeof DeviceOrientationEvent.requestPermission==="function"){
@@ -507,6 +529,9 @@ function startCompass(){
 function stopCompass(){
   window.removeEventListener("deviceorientationabsolute",onOrient,true);
   window.removeEventListener("deviceorientation",onOrient,true);
+  smoothHeading=null;
+  warnedRelative=false;
+  lastSensorSource="";
   compassOn=false; S.useCompass=false; S.heading=0; setCompassUI(""); updateRose();
 }
 $("#compassBtn").onclick=()=>{ compassOn?stopCompass():startCompass(); syncCompassBtn(); };

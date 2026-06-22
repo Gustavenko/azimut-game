@@ -1,5 +1,5 @@
 /* Offline cache pre azimutovú pomôcku. Pri zmene súborov zvýš verziu nižšie. */
-const CACHE = "azimuty-v2";
+const CACHE = "azimuty-v3";
 const ASSETS = [
   "./",
   "index.html",
