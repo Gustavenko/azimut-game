@@ -70,15 +70,8 @@
   .tick.maj{stroke:var(--ink);stroke-width:1.8}
   .card-letter{font-family:var(--serif);font-size:13px;font-weight:600;fill:var(--ink);text-anchor:middle}
   .card-letter.n{fill:var(--gold)}
-  .blade{fill:var(--wisp)} .blade.dim{fill:#9AA8A0} .hub{fill:var(--ink)}
+  .blade{fill:#C62828} .blade.dim{fill:#9AA8A0} .hub{fill:var(--ink)}
   .needle-faded #needleLayer{opacity:.12}
-  .readout{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
-    justify-content:center;pointer-events:none;text-align:center;padding-top:4px}
-  .deg{font-family:var(--mono);font-weight:700;line-height:.9;letter-spacing:-.02em;font-size:clamp(44px,15vw,62px)}
-  .deg span{font-size:.42em;vertical-align:super;font-weight:600;margin-left:1px}
-  .deg.empty{font-size:26px;color:var(--muted);font-family:var(--serif);font-weight:600;letter-spacing:0}
-  .deg-kind{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--wisp-deep);margin-top:4px}
-  .deg-kind.true{color:var(--gold)}
 
   .target-name{text-align:center;font-family:var(--serif);font-size:16px;margin:0 0 10px;color:var(--pine)}
   .target-name b{font-family:var(--mono);font-weight:700}
@@ -178,10 +171,6 @@
      <polygon class="blade" points="100,30 91,103 109,103"/>
      <polygon class="blade dim" points="100,168 95,103 105,103"/>
      <circle class="hub" cx="100" cy="100" r="5"/></svg></div>
-  <div class="readout">
-    <div class="deg empty" id="deg">vyber cieľ</div>
-    <div class="deg-kind" id="degKind" hidden>magnetický</div>
-  </div>
 </div>
 
 <div class="target-name" id="tName"><em>Vyber bod, kam posielaš deti</em></div>
@@ -335,18 +324,13 @@ function render(){
     $$("#targets .tgt").forEach(b=>b.onclick=()=>{S.target=+b.dataset.t;render();});
   }
 
-  const deg=$("#deg"),kind=$("#degKind");
   if(S.target===null){
-    deg.className="deg empty"; deg.textContent="vyber cieľ"; kind.hidden=true;
     document.body.classList.add("needle-faded"); $("#facts").hidden=true;
     $("#tName").innerHTML='<em>Vyber bod, kam posielaš deti</em>';
     setRot("needle",0);
   }else{
     document.body.classList.remove("needle-faded");
     const trueB=bearingC(o,POINTS[S.target]), distM=distC(o,POINTS[S.target]), az=dispAz(trueB);
-    deg.className="deg"; deg.innerHTML=`${fmtDeg(az)}<span>°</span>`;
-    kind.hidden=false; kind.textContent=S.display==="mag"?"magnetický azimut":"pravý azimut";
-    kind.className="deg-kind"+(S.display==="mag"?"":" true");
     $("#tName").innerHTML=`<b>${S.target}</b> · ${POINTS[S.target].name}`;
     // facts
     $("#facts").hidden=false;
