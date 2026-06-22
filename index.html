@@ -458,9 +458,14 @@ $("#resetBtn").onclick=()=>{
 /* ---------- device compass ---------- */
 let compassOn=false;
 function headingFromEvent(e){
-  if(typeof e.webkitCompassHeading==="number") return e.webkitCompassHeading; // iOS, ~true north
-  if(e.alpha==null) return null;
-  let mag=(360-e.alpha)%360;            // Android: alpha counterclockwise
+  if(typeof e.webkitCompassHeading==="number" && !Number.isNaN(e.webkitCompassHeading)){
+    // Safari/iOS reports magnetic heading -> convert to true for internal state.
+    return (e.webkitCompassHeading+S.declination+360)%360;
+  }
+  if(typeof e.alpha!=="number" || Number.isNaN(e.alpha)) return null;
+  // On some devices non-absolute alpha drifts against the world frame, so ignore it.
+  if(typeof e.absolute==="boolean" && !e.absolute) return null;
+  const mag=(360-e.alpha)%360;          // Android: alpha counterclockwise
   return (mag+S.declination+360)%360;   // magnetic -> true
 }
 function onOrient(e){
@@ -504,7 +509,7 @@ function syncAll(){syncSeg();syncDisp();declI.value=String(S.declination).replac
 
 /* ---------- service worker (len pri hostovaní cez http/https) ---------- */
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
-  navigator.serviceWorker.register("sw.js").catch(()=>{});
+  navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(()=>{});
 }
 
 /* ---------- go ---------- */
