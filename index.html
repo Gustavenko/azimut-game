@@ -80,7 +80,6 @@
   .deg.empty{font-size:30px;color:var(--muted);font-family:var(--serif);font-weight:600;letter-spacing:0}
   .deg-kind{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
     color:var(--wisp-deep);margin-top:4px}
-  .deg-kind.true{color:var(--gold)}
 
   /* ---------- under-compass facts ---------- */
   .facts{display:flex;justify-content:center;gap:18px;margin:2px 0 12px;flex-wrap:wrap}
@@ -90,6 +89,9 @@
     text-transform:uppercase;color:var(--muted);margin-top:1px}
   .target-name{text-align:center;font-family:var(--serif);font-size:16px;margin:-2px 0 12px;color:var(--pine)}
   .target-name em{color:var(--muted);font-style:normal}
+  .step-actions{display:flex;gap:8px;justify-content:center;margin:-2px 0 12px;flex-wrap:wrap}
+  .step-actions .btn{padding:9px 12px;font-size:12.5px}
+  .step-actions .btn:disabled{opacity:.5;cursor:not-allowed}
 
   /* ---------- segmented ---------- */
   .seg{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:12px;
@@ -194,6 +196,11 @@
 
 <div class="target-name" id="tName"><em>Vyber bod, kam posielaš deti</em></div>
 
+<div class="step-actions">
+  <button class="btn go" id="arriveBtn" disabled>Prišli sme na cieľ</button>
+  <button class="btn" id="backBtn" disabled>Späť o krok</button>
+</div>
+
 <div class="facts" id="facts" hidden>
   <div class="fact"><b id="fDist">–</b><small>vzdialenosť</small></div>
   <div class="fact"><b id="fBack">–</b><small>späť (azimut)</small></div>
@@ -224,15 +231,7 @@
   <h2>Nastavenia</h2>
 
   <div class="set-row">
-    <div class="lab"><b>Zobrazený azimut</b><small>Magnetický = priamo na buzolu. Pravý = voči zemepisnému severu (mapa).</small></div>
-  </div>
-  <div class="seg mini" role="group" aria-label="Typ azimutu">
-    <button id="dispMag" aria-pressed="true">Magnetický</button>
-    <button id="dispTrue" aria-pressed="false">Pravý</button>
-  </div>
-
-  <div class="set-row">
-    <div class="lab"><b>Magnetická deklinácia</b><small>+5,5° pre okolie Starej Turej. Odčíta sa od pravého azimutu.</small></div>
+    <div class="lab"><b>Magnetická deklinácia</b><small>+5,5° pre okolie Starej Turej. Používa sa na prepočet na magnetický azimut pre buzolu.</small></div>
     <div class="decl">
       <button id="declMinus" aria-label="Znížiť">−</button>
       <input id="declInput" inputmode="decimal" value="5.5">
@@ -315,12 +314,12 @@ function gameTargets(p){return CONNECTIONS.filter(c=>c[0]===p).map(c=>c[1]);}
 function isGameLink(p,t){return CONNECTIONS.some(c=>c[0]===p&&c[1]===t);}
 
 /* ---------- state ---------- */
-const S={current:START_POINT, target:null, mode:"game", display:"mag",
+const S={current:START_POINT, target:null, mode:"game", history:[],
          declination:DECLINATION_DEFAULT, useCompass:false, heading:0};
 const store={
-  load(){try{const v=JSON.parse(localStorage.getItem("azimuty"));if(v)Object.assign(S,v,{target:null,useCompass:false,heading:0});}catch(e){}},
+  load(){try{const v=JSON.parse(localStorage.getItem("azimuty"));if(v)Object.assign(S,v,{target:null,useCompass:false,heading:0,history:Array.isArray(v.history)?v.history:[]});}catch(e){}},
   save(){try{localStorage.setItem("azimuty",JSON.stringify(
-      {current:S.current,mode:S.mode,display:S.display,declination:S.declination}));}catch(e){}}
+      {current:S.current,mode:S.mode,declination:S.declination,history:S.history}));}catch(e){}}
 };
 
 /* ---------- build static compass ticks + cardinals ---------- */
@@ -343,7 +342,7 @@ const store={
 /* ---------- render ---------- */
 function azFor(t){
   const tru=bearing(S.current,t);
-  return S.display==="mag" ? (tru-S.declination+360)%360 : tru;
+  return (tru-S.declination+360)%360;
 }
 function render(){
   const c=POINTS[S.current];
@@ -356,7 +355,7 @@ function render(){
   if(S.target!==null && !list.includes(S.target)) S.target=null;
   const wrap=$("#targets");
   if(list.length===0){
-    wrap.innerHTML='<div class="empty-note">Z tohto bodu hra neurčuje žiadny spoj.<br>Prepni na „Všetky body".</div>';
+    wrap.innerHTML='<div class="empty-note">Z tohto bodu hra neurčuje žiadny spoj.<br><button class="btn" data-action="allmode">Prepnúť na všetky body</button></div>';
   }else{
     wrap.innerHTML=list.map(t=>{
       const az=azFor(t), game=isGameLink(S.current,t);
@@ -365,11 +364,13 @@ function render(){
         <span class="arrow">➜</span>
         <span class="tb">${t}</span>
         <span class="tn">${POINTS[t].name}${game?'<i title="herný spoj">✦</i>':''}</span>
-        <span class="taz">${fmtDeg(az)}°<small>${S.display==="mag"?"mag":"pravý"}</small></span>
+        <span class="taz">${fmtDeg(az)}°<small>mag</small></span>
       </button>`;
     }).join("");
     $$("#targets .tgt").forEach(b=>b.onclick=()=>{S.target=+b.dataset.t;render();});
   }
+  const allModeBtn=wrap.querySelector('[data-action="allmode"]');
+  if(allModeBtn) allModeBtn.onclick=()=>{S.mode="all";syncSeg();store.save();render();};
 
   // compass + readout
   const deg=$("#deg"),kind=$("#degKind"),needle=$("#needle");
@@ -381,8 +382,8 @@ function render(){
   }else{
     const tru=bearing(S.current,S.target), az=azFor(S.target);
     deg.className="deg"; deg.innerHTML=`${fmtDeg(az)}<span>°</span>`;
-    kind.hidden=false; kind.textContent=S.display==="mag"?"magnetický azimut":"pravý azimut";
-    kind.className="deg-kind"+(S.display==="mag"?"":" true");
+    kind.hidden=false; kind.textContent="magnetický azimut";
+    kind.className="deg-kind";
     needle.style.opacity="1"; needle.classList.add("pulse");
     // needle points to the DISPLAYED azimuth; rose-north matches the chosen reference,
     // so the picture always agrees with the number (and stays correct in live mode).
@@ -390,19 +391,22 @@ function render(){
     $("#tName").innerHTML=`<b>${S.target}</b> · ${POINTS[S.target].name}`;
     $("#facts").hidden=false;
     $("#fDist").textContent=Math.round(distance(S.current,S.target))+" m";
-    const back=(tru+180)%360, backAz=S.display==="mag"?(back-S.declination+360)%360:back;
+    const back=(tru+180)%360, backAz=(back-S.declination+360)%360;
     $("#fBack").textContent=fmtDeg(backAz)+"°";
   }
+  updateStepButtons();
   updateRose();
 }
 function updateRose(){
-  // S.heading is TRUE heading. The shown "north" is true north, or magnetic north
-  // (true - declination) when the magnetic azimuth is displayed. Drawing the needle at
-  // the displayed azimuth + rotating the rose to the matching north makes the real-world
-  // pointing identical either way (the declination cancels), and the static picture matches the number.
-  const northRef = (S.display==="mag") ? (S.heading - S.declination) : S.heading;
+  // S.heading is TRUE heading. We display magnetic azimuth for buzola use,
+  // so the rose is rotated to magnetic north (true - declination).
+  const northRef = S.heading - S.declination;
   const ang = S.useCompass ? -northRef : 0;
   $("#rose").setAttribute("transform",`rotate(${ang.toFixed(1)} 100 100)`);
+}
+function updateStepButtons(){
+  $("#arriveBtn").disabled=S.target===null;
+  $("#backBtn").disabled=S.history.length===0;
 }
 
 /* ---------- picker ---------- */
@@ -435,12 +439,22 @@ function syncSeg(){
   $("#modeGame").setAttribute("aria-pressed",S.mode==="game");
   $("#modeAll").setAttribute("aria-pressed",S.mode==="all");
 }
-$("#dispMag").onclick =()=>{S.display="mag"; syncDisp();store.save();render();};
-$("#dispTrue").onclick=()=>{S.display="true";syncDisp();store.save();render();};
-function syncDisp(){
-  $("#dispMag").setAttribute("aria-pressed",S.display==="mag");
-  $("#dispTrue").setAttribute("aria-pressed",S.display==="true");
-}
+$("#arriveBtn").onclick=()=>{
+  if(S.target===null) return;
+  S.history.push(S.current);
+  if(S.history.length>30) S.history=S.history.slice(-30);
+  S.current=S.target;
+  S.target=null;
+  store.save();
+  render();
+};
+$("#backBtn").onclick=()=>{
+  if(!S.history.length) return;
+  S.current=S.history.pop();
+  S.target=null;
+  store.save();
+  render();
+};
 
 const declI=$("#declInput");
 function setDecl(v){S.declination=Math.max(-30,Math.min(30,Math.round(v*10)/10));declI.value=String(S.declination).replace(".",",");store.save();render();}
@@ -449,7 +463,7 @@ $("#declPlus").onclick =()=>setDecl(S.declination+0.5);
 declI.onchange=()=>{const v=parseFloat(declI.value.replace(",","."));if(!isNaN(v))setDecl(v);else setDecl(S.declination);};
 
 $("#resetBtn").onclick=()=>{
-  Object.assign(S,{current:START_POINT,target:null,mode:"game",display:"mag",
+  Object.assign(S,{current:START_POINT,target:null,mode:"game",history:[],
     declination:DECLINATION_DEFAULT,useCompass:false,heading:0});
   try{localStorage.removeItem("azimuty");}catch(e){}
   stopCompass(); syncAll(); render(); closeSheet();
@@ -505,7 +519,7 @@ function setCompassUI(msg){$("#compassNote").textContent=msg; syncCompassBtn();}
 if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)
   document.body.classList.add("reduce");
 
-function syncAll(){syncSeg();syncDisp();declI.value=String(S.declination).replace(".",",");syncCompassBtn();}
+function syncAll(){syncSeg();declI.value=String(S.declination).replace(".",",");syncCompassBtn();updateStepButtons();}
 
 /* ---------- service worker (len pri hostovaní cez http/https) ---------- */
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
